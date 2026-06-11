@@ -1,0 +1,5 @@
+dist
+.omo
+.playwright-mcp
+temp
+host/local-editor-host
