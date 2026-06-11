@@ -116,7 +116,7 @@ Load Temporary Add-on...
 选择：
 
 ```text
-/home/easul/workspace/firefox-local-editor/firefox-extension/manifest.json
+/path/to/firefox-local-editor/firefox-extension/manifest.json
 ```
 
 这种方式适合开发测试。缺点是 Firefox 重启后需要重新加载。
