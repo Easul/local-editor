@@ -1,0 +1,24 @@
+{
+  "manifest_version": 2,
+  "name": "Firefox Local Editor",
+  "version": "0.1.0",
+  "description": "Edit supported local files directly in Firefox.",
+  "permissions": ["nativeMessaging", "<all_urls>", "file://*/*"],
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "content_scripts": [
+    {
+      "matches": ["file://*/*"],
+      "js": ["content.js"],
+      "css": ["style.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "local-editor@example.com",
+      "strict_min_version": "109.0"
+    }
+  }
+}

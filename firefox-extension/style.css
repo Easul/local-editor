@@ -1,0 +1,155 @@
+.local-editor-fab,
+.local-editor-panel,
+.local-editor-panel * {
+  box-sizing: border-box;
+}
+
+.local-editor-fab {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 2147483647;
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 14px;
+  background: #0060df;
+  color: #fff;
+  font: 600 14px/1 system-ui, sans-serif;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+
+.local-editor-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  display: flex;
+  flex-direction: column;
+  background: var(--local-editor-bg);
+  color: var(--local-editor-text);
+  font: 14px/1.4 system-ui, sans-serif;
+  border: 0;
+  border-radius: 0;
+  overflow: hidden;
+  box-shadow: none;
+}
+
+.local-editor-theme-light {
+  --local-editor-bg: #ffffff;
+  --local-editor-panel: #f3f5f7;
+  --local-editor-border: #d7dce2;
+  --local-editor-text: #111418;
+  --local-editor-muted: #365164;
+  --local-editor-editor-bg: #ffffff;
+  --local-editor-button-bg: #e7ebf0;
+  --local-editor-button-text: #111418;
+  --local-editor-primary-bg: #0060df;
+  --local-editor-primary-text: #ffffff;
+  --local-editor-status: #168a16;
+}
+
+.local-editor-theme-dark {
+  --local-editor-bg: #15161a;
+  --local-editor-panel: #20232a;
+  --local-editor-border: #3a3f4b;
+  --local-editor-text: #f5f5f5;
+  --local-editor-muted: #c8d1dc;
+  --local-editor-editor-bg: #15161a;
+  --local-editor-button-bg: #3a3f4b;
+  --local-editor-button-text: #ffffff;
+  --local-editor-primary-bg: #4f9cff;
+  --local-editor-primary-text: #08111f;
+  --local-editor-status: #9be59b;
+}
+
+.local-editor-fab.hidden,
+.local-editor-panel.hidden,
+.local-editor-banner.hidden {
+  display: none;
+}
+
+.local-editor-bar,
+.local-editor-actions,
+.local-editor-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--local-editor-panel);
+}
+
+.local-editor-bar {
+  justify-content: space-between;
+  border-bottom: 1px solid var(--local-editor-border);
+}
+
+.local-editor-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.local-editor-status {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  color: var(--local-editor-status);
+}
+
+.local-editor-textarea {
+  flex: 1;
+  width: 100%;
+  border: 0;
+  resize: none;
+  padding: 16px;
+  background: var(--local-editor-editor-bg);
+  color: inherit;
+  font: 14px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace;
+  outline: none;
+}
+
+.local-editor-actions {
+  justify-content: flex-end;
+  border-top: 1px solid var(--local-editor-border);
+}
+
+.local-editor-btn,
+.local-editor-reload {
+  border: 0;
+  border-radius: 0;
+  padding: 8px 12px;
+  background: var(--local-editor-button-bg);
+  color: var(--local-editor-button-text);
+  cursor: pointer;
+}
+
+.local-editor-reload {
+  margin-left: auto;
+  background: var(--local-editor-primary-bg);
+  color: var(--local-editor-primary-text);
+}
+
+.local-editor-save {
+  background: var(--local-editor-primary-bg);
+  color: var(--local-editor-primary-text);
+}
+
+@media (max-width: 560px) {
+  .local-editor-panel {
+    inset: 0;
+    border-radius: 0;
+  }
+
+  .local-editor-bar,
+  .local-editor-actions,
+  .local-editor-banner {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .local-editor-textarea {
+    padding: 10px;
+  }
+}
