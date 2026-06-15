@@ -1,6 +1,6 @@
 {
   "name": "local_editor",
-  "description": "Firefox Local Editor native host",
+  "description": "Local Editor native host for Firefox",
   "path": "/usr/local/bin/local-editor-host",
   "type": "stdio",
   "allowed_extensions": ["local-editor@example.com"]
