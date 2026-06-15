@@ -1,0 +1,7 @@
+{
+  "name": "local_editor",
+  "description": "Local Editor native host for Chromium browsers",
+  "path": "/usr/local/bin/local-editor-host",
+  "type": "stdio",
+  "allowed_origins": ["chrome-extension://REPLACE_WITH_EXTENSION_ID/"]
+}

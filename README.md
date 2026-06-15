@@ -1,127 +1,289 @@
-# Firefox Local Editor
+# Local Editor
 
-在 Firefox 里直接编辑本地 `txt/md/ini/yaml/toml/json/log` 文件。打开 `file://` 页面后点右下角 `✏ Edit`，在 Firefox 内修改，`Ctrl+S` 原地保存。
+Local Editor 是一个浏览器扩展，用来在 Firefox、Chrome、Edge、Chromium 中直接编辑本地文本文件。打开 `file://` 页面后，页面右下角会出现 `✏ Edit` 按钮；点击后进入全屏编辑器，修改内容并用 `Ctrl+S` 保存回原文件。
 
-## 当前功能
+扩展本身不能直接写本地文件，所以需要配合本项目的 Go Native Messaging Host 使用。
 
-- 支持 `file://` 本地文本文件
+## 功能
+
+- 支持 `file://` 本地文件页面
+- 支持后缀：`.txt .md .ini .conf .yaml .yml .toml .json .log`
 - 点击 `✏ Edit` 进入全屏编辑器
-- 默认亮色主题，可切换深色主题
-- `Ctrl+S` 保存
-- `Esc` 或“关闭”退出编辑器，并自动刷新当前文件页面
-- 外部程序修改文件后提示“重新加载”
-
-支持后缀：
-
-```text
-.txt .md .ini .conf .yaml .yml .toml .json .log
-```
+- `Ctrl+S` 保存到原文件
+- `Esc` 或“关闭”退出编辑器，并刷新当前文件页面
+- 支持亮色 / 深色主题切换
+- 文件被外部程序修改后提示重新加载
 
 ## 项目结构
 
 ```text
 firefox-local-editor/
-├── firefox-extension/          # Firefox 扩展
-│   ├── manifest.json
-│   ├── background.js
-│   ├── content.js
-│   └── style.css
-├── host/                       # Go Native Messaging host
+├── extension/
+│   ├── firefox/                 # Firefox 扩展源码，Manifest V2
+│   │   ├── manifest.json
+│   │   ├── background.js
+│   │   ├── content.js
+│   │   └── style.css
+│   └── chromium/                # Chrome / Edge / Chromium 扩展源码，Manifest V3
+│       ├── manifest.json
+│       ├── background.js
+│       ├── content.js
+│       └── style.css
+├── host/                        # Go Native Messaging Host
 │   ├── go.mod
 │   └── main.go
 ├── native-manifest/
-│   └── local_editor.json       # Firefox native host 清单模板
+│   ├── local_editor_firefox.json
+│   └── local_editor_chromium.json
 ├── scripts/
-│   ├── build-host.sh           # 编译 Go host
-│   ├── package-xpi.sh          # 生成未签名 XPI
-│   └── sign-xpi.sh             # 通过 AMO 生成正式签名 XPI
-└── dist/                       # 构建产物
+│   └── build.sh                 # 单入口构建脚本
+└── dist/                        # 构建产物
 ```
 
-## Deepin 64 位安装
-### 1. 安装依赖
+## 依赖
+
+Deepin / Debian / Ubuntu：
 
 ```bash
 sudo apt update
-sudo apt install -y golang-go zip nodejs npm
+sudo apt install -y golang-go zip python3 nodejs npm
 ```
 
-说明：
+依赖用途：
 
-- Go 用于编译 `local-editor-host`
-- `zip` 用于打 `.xpi`
-- `nodejs/npm` 只在需要正式签名时使用 `web-ext`
+- `go`：编译 Native Messaging Host
+- `zip`：生成 Firefox debug XPI 和 Chromium debug ZIP
+- `python3`：读取扩展版本号、校验/辅助打包
+- `nodejs/npm`：只有生成 Firefox release XPI 时才需要 `web-ext sign`
 
-### 2. 编译 Native Host
+## 构建入口
+
+所有构建都通过一个脚本执行：
 
 ```bash
-cd /path/to/firefox-local-editor
-bash scripts/build-host.sh
+bash scripts/build.sh [host|firefox|chromium|all]
 ```
 
-成功后会生成：
+不传参数时默认是 `all`。
+
+### 构建目标说明
+
+| 目标 | 作用 | 主要产物 |
+|---|---|---|
+| `host` | 编译 Go Native Messaging Host，并去掉符号 | `dist/local-editor-host`、`dist/host/*` |
+| `firefox` | 构建 Firefox debug XPI；有 AMO 凭据时同时构建 release XPI | `dist/firefox/` |
+| `chromium` | 构建 Chromium debug ZIP；有 Chromium CRX key 时同时构建 release CRX | `dist/chromium/` |
+| `all` | 依次执行 `host`、`firefox`、`chromium` | 全部产物 |
+
+### Host 构建
+
+```bash
+bash scripts/build.sh host
+```
+
+输出：
 
 ```text
 dist/local-editor-host
+dist/host/local-editor-host-linux-amd64
+dist/host/local-editor-host-darwin-amd64
+dist/host/local-editor-host-windows-amd64.exe
 ```
 
-### 3. 安装 Native Messaging 清单
+`dist/local-editor-host` 是当前平台可直接使用的 host；`dist/host/` 下是 linux / macOS / Windows 的 amd64 包。
 
-Firefox 扩展不能直接写本地文件，必须通过 Native Messaging 调用 Go host。
+### Firefox 构建
 
-创建 Firefox native host 目录：
+```bash
+bash scripts/build.sh firefox
+```
+
+始终生成 debug 包：
+
+```text
+dist/firefox/local-editor-0.1.0-firefox-debug.xpi
+```
+
+如果提供 AMO 凭据，还会生成 release 包：
+
+```text
+dist/firefox/local-editor-0.1.0-firefox-release.xpi
+```
+
+AMO 凭据可以用环境变量：
+
+```bash
+AMO_JWT_ISSUER="..." AMO_JWT_SECRET="..." bash scripts/build.sh firefox
+```
+
+也可以用 key 文件：
+
+```bash
+AMO_KEY_FILE=temp/key.md bash scripts/build.sh firefox
+```
+
+### Chromium 构建
+
+```bash
+bash scripts/build.sh chromium
+```
+
+始终生成 debug ZIP 和可直接加载的目录：
+
+```text
+dist/chromium/local-editor-0.1.0-chromium-debug.zip
+dist/chromium/debug/
+```
+
+如果提供 Chromium CRX 私钥，还会生成 release CRX：
+
+```text
+dist/chromium/local-editor-0.1.0-chromium-release.crx
+```
+
+示例：
+
+```bash
+CHROMIUM_CRX_KEY=/path/to/key.pem bash scripts/build.sh chromium
+```
+
+Chromium debug 包是 ZIP，release 包是 CRX。Chromium 浏览器不使用 XPI；XPI 只用于 Firefox。
+
+## 手动安装
+
+### 1. 准备 Native Messaging Host
+
+先构建 host：
+
+```bash
+bash scripts/build.sh host
+```
+
+可以直接使用绝对路径：
+
+```text
+/path/to/firefox-local-editor/dist/local-editor-host
+```
+
+也可以手动复制到系统路径：
+
+```bash
+sudo cp dist/local-editor-host /usr/local/bin/local-editor-host
+sudo chmod 755 /usr/local/bin/local-editor-host
+```
+
+后续 native manifest 里的 `path` 必须写实际 host 的绝对路径。
+
+### 2. Firefox 手动安装
+
+构建 Firefox 包：
+
+```bash
+bash scripts/build.sh firefox
+```
+
+复制 Firefox native manifest 模板：
 
 ```bash
 mkdir -p ~/.mozilla/native-messaging-hosts
+cp native-manifest/local_editor_firefox.json ~/.mozilla/native-messaging-hosts/local_editor.json
 ```
 
-复制清单：
-
-```bash
-cp native-manifest/local_editor.json ~/.mozilla/native-messaging-hosts/local_editor.json
-```
-
-编辑清单：
+手动编辑：
 
 ```bash
 nano ~/.mozilla/native-messaging-hosts/local_editor.json
 ```
 
-确认 `path` 是 Go host 的绝对路径：
+确认 `path` 是 host 的绝对路径，`allowed_extensions` 保持不变：
 
 ```json
 {
   "name": "local_editor",
-  "description": "Firefox Local Editor native host",
-  "path": "/path/to/local-editor-host",
+  "description": "Local Editor native host for Firefox",
+  "path": "/usr/local/bin/local-editor-host",
   "type": "stdio",
   "allowed_extensions": ["local-editor@example.com"]
 }
 ```
 
-### 4. 调试方式加载扩展
-
-Firefox 打开：
+开发加载方式：
 
 ```text
 about:debugging#/runtime/this-firefox
-```
-
-点击：
-
-```text
 Load Temporary Add-on...
+/path/to/firefox-local-editor/extension/firefox/manifest.json
 ```
 
-选择：
+如果使用 XPI，则选择：
 
 ```text
-/path/to/firefox-local-editor/firefox-extension/manifest.json
+dist/firefox/local-editor-0.1.0-firefox-debug.xpi
+dist/firefox/local-editor-0.1.0-firefox-release.xpi
 ```
 
-这种方式适合开发测试。缺点是 Firefox 重启后需要重新加载。
+### 3. Chrome / Edge / Chromium 手动安装
 
-### 5. 使用
+构建 Chromium 包：
+
+```bash
+bash scripts/build.sh chromium
+```
+
+打开扩展管理页：
+
+```text
+Chrome:   chrome://extensions
+Edge:     edge://extensions
+Chromium: chrome://extensions
+```
+
+开启“开发者模式”，点击“加载已解压的扩展程序”，选择：
+
+```text
+/path/to/firefox-local-editor/dist/chromium/debug/
+```
+
+加载后进入扩展详情页，复制 Extension ID，并开启：
+
+```text
+允许访问文件网址 / Allow access to file URLs
+```
+
+复制 Chromium native manifest 模板：
+
+```bash
+# Chrome
+mkdir -p ~/.config/google-chrome/NativeMessagingHosts
+cp native-manifest/local_editor_chromium.json ~/.config/google-chrome/NativeMessagingHosts/local_editor.json
+
+# Chromium
+mkdir -p ~/.config/chromium/NativeMessagingHosts
+cp native-manifest/local_editor_chromium.json ~/.config/chromium/NativeMessagingHosts/local_editor.json
+
+# Edge
+mkdir -p ~/.config/microsoft-edge/NativeMessagingHosts
+cp native-manifest/local_editor_chromium.json ~/.config/microsoft-edge/NativeMessagingHosts/local_editor.json
+```
+
+手动编辑对应目录里的 `local_editor.json`：
+
+```json
+{
+  "name": "local_editor",
+  "description": "Local Editor native host for Chromium browsers",
+  "path": "/usr/local/bin/local-editor-host",
+  "type": "stdio",
+  "allowed_origins": ["chrome-extension://REPLACE_WITH_EXTENSION_ID/"]
+}
+```
+
+需要修改两处：
+
+- `path`：改成 host 的绝对路径
+- `REPLACE_WITH_EXTENSION_ID`：改成扩展详情页里的 Extension ID
+
+## 使用
 
 打开本地文件，例如：
 
@@ -129,105 +291,16 @@ Load Temporary Add-on...
 file:///home/user/Desktop/test.md
 ```
 
-右下角出现：
+页面右下角会出现：
 
 ```text
 ✏ Edit
 ```
 
-操作：
+常用操作：
 
 - 点击 `✏ Edit`：进入编辑器
 - `Ctrl+S`：保存到原文件
 - `Esc`：退出编辑器并刷新当前文件页
 - “关闭”：退出编辑器并刷新当前文件页
 - “切换深色 / 切换亮色”：切换主题
-
-## 打包 XPI
-
-### 本地未签名 XPI
-
-```bash
-cd /path/to/firefox-local-editor
-bash scripts/package-xpi.sh
-```
-
-输出类似：
-
-```text
-dist/firefox-local-editor-0.1.0.xpi
-```
-
-注意：Firefox 正式版通常不能长期安装未签名 XPI。未签名 XPI 主要用于：
-
-- `about:debugging` 临时加载
-- Firefox Developer Edition / Nightly / 部分 ESR 环境中关闭签名校验后测试
-
-### 正式可安装 XPI：Mozilla 签名
-
-Firefox 正式版长期安装扩展，需要 Mozilla 签名。推荐使用 `web-ext sign` 的 unlisted 方式：不公开上架，只生成可自己安装的已签名 XPI。
-
-1. 登录 AMO 开发者后台并创建 API key：
-
-```text
-https://addons.mozilla.org/developers/addon/api/key/
-```
-
-2. 导出 API 凭据：
-
-```bash
-export AMO_JWT_ISSUER="你的 API key"
-export AMO_JWT_SECRET="你的 API secret"
-```
-
-3. 提交签名：
-
-```bash
-cd /path/to/firefox-local-editor
-bash scripts/sign-xpi.sh
-```
-
-成功后，已签名 XPI 会下载到：
-
-```text
-dist/signed/
-```
-
-然后可以在 Firefox 中打开这个 `.xpi` 安装。
-
-## 常见问题
-
-### 看不到 `✏ Edit`
-
-检查：
-
-1. URL 必须是 `file:///...`
-2. 后缀必须是支持列表里的文本后缀
-3. 扩展必须已加载
-
-### 点保存失败
-
-通常是 Native Host 没配好。检查：
-
-```bash
-cat ~/.mozilla/native-messaging-hosts/local_editor.json
-```
-
-重点确认：
-
-- `path` 是绝对路径
-- `path` 指向的 `dist/local-editor-host` 存在
-- `allowed_extensions` 包含 `local-editor@example.com`
-
-### 修改了扩展代码但没生效
-
-如果用 `about:debugging` 临时加载，需要在调试页面点 Reload，或者删除后重新加载 `manifest.json`。
-
-### 正式签名失败
-
-常见原因：
-
-- AMO API key/secret 填错
-- 扩展版本号没有递增
-- 网络无法访问 AMO
-- manifest 中权限或 ID 不符合 AMO 校验要求

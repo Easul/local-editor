@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Local Editor",
+  "version": "0.1.2",
+  "description": "Edit supported local files directly in Chromium browsers.",
+  "permissions": ["nativeMessaging"],
+  "host_permissions": ["file:///*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["file:///*"],
+      "js": ["content.js"],
+      "css": ["style.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}
