@@ -17,7 +17,7 @@ Local Editor 是一个浏览器扩展，用来在 Firefox、Chrome、Edge、Chro
 ## 项目结构
 
 ```text
-firefox-local-editor/
+local-editor/
 ├── extension/
 │   ├── firefox/                 # Firefox 扩展源码，Manifest V2
 │   │   ├── manifest.json
@@ -122,6 +122,16 @@ AMO_JWT_ISSUER="..." AMO_JWT_SECRET="..." bash scripts/build.sh firefox
 AMO_KEY_FILE=temp/key.md bash scripts/build.sh firefox
 ```
 
+key.md 的内容为
+
+```markdown
+# firefox凭据
+```yaml
+AMO_JWT_ISSUER: user:12345678:345
+AMO_JWT_SECRET: 123asdf54568eed1228412123asdf54568eed1228412123asdf54568eed1228412
+```
+```
+
 ### Chromium 构建
 
 ```bash
@@ -162,7 +172,7 @@ bash scripts/build.sh host
 可以直接使用绝对路径：
 
 ```text
-/path/to/firefox-local-editor/dist/local-editor-host
+/path/to/local-editor/dist/local-editor-host
 ```
 
 也可以手动复制到系统路径：
@@ -212,7 +222,7 @@ nano ~/.mozilla/native-messaging-hosts/local_editor.json
 ```text
 about:debugging#/runtime/this-firefox
 Load Temporary Add-on...
-/path/to/firefox-local-editor/extension/firefox/manifest.json
+/path/to/local-editor/extension/firefox/manifest.json
 ```
 
 如果使用 XPI，则选择：
@@ -241,7 +251,7 @@ Chromium: chrome://extensions
 开启“开发者模式”，点击“加载已解压的扩展程序”，选择：
 
 ```text
-/path/to/firefox-local-editor/dist/chromium/debug/
+/path/to/local-editor/dist/chromium/debug/
 ```
 
 加载后进入扩展详情页，复制 Extension ID，并开启：
