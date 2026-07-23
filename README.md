@@ -232,6 +232,17 @@ dist/firefox/local-editor-0.1.0-firefox-debug.xpi
 dist/firefox/local-editor-0.1.0-firefox-release.xpi
 ```
 
+#### Firefox 153 及以上版本的本地文件权限
+
+从 Firefox 153 开始，扩展访问 `file://` 本地文件需要用户单独授权，并且该权限默认关闭。如果扩展已经加载，但打开受支持的本地文件时没有出现 `✏ Edit` 按钮，请按以下步骤开启权限：
+
+1. 打开 `about:addons`。
+2. 找到 Local Editor，进入扩展详情页的“权限”。
+3. 开启“访问您计算机上的本地文件”（`Access local files on your computer`）。
+4. 刷新已经打开的 `file://` 页面。
+
+如果 `about:addons` 中没有 Local Editor，并且此前使用的是 `about:debugging` 的临时加载方式，则 Firefox 更新重启后需要重新加载扩展。
+
 ### 3. Chrome / Edge / Chromium 手动安装
 
 构建 Chromium 包：
